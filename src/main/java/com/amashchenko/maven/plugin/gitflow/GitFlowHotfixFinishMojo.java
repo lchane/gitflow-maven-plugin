@@ -102,6 +102,13 @@ public class GitFlowHotfixFinishMojo extends AbstractGitFlowMojo {
     @Parameter(property = "useSnapshotInHotfix", defaultValue = "false")
     private boolean useSnapshotInHotfix;
 
+    /**
+     * Whether to skip merging into the development branch.
+     * 
+     */
+    @Parameter(property = "skipMergeDevBranch", defaultValue = "false")
+    private boolean skipMergeDevBranch = false;
+
     /** {@inheritDoc} */
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -159,18 +166,16 @@ public class GitFlowHotfixFinishMojo extends AbstractGitFlowMojo {
                 }
             }
 
-            if (!skipTestProject) {
-                // git checkout hotfix/...
-                gitCheckout(hotfixBranchName);
+            // git checkout hotfix/...
+            gitCheckout(hotfixBranchName);
 
+            if (!skipTestProject) {
                 // mvn clean test
                 mvnCleanTest();
             }
 
             // maven goals before merge
             if (StringUtils.isNotBlank(preHotfixGoals)) {
-                gitCheckout(hotfixBranchName);
-
                 mvnRun(preHotfixGoals);
             }
 
@@ -183,7 +188,7 @@ public class GitFlowHotfixFinishMojo extends AbstractGitFlowMojo {
                 Map<String, String> properties = new HashMap<String, String>();
                 properties.put("version", commitVersion);
 
-                gitCommit(commitMessages.getHotfixStartMessage(), properties);
+                gitCommit(commitMessages.getHotfixFinishMessage(), properties);
             }
 
             if (supportBranchName != null) {
@@ -231,7 +236,7 @@ public class GitFlowHotfixFinishMojo extends AbstractGitFlowMojo {
                     gitCheckout(releaseBranch);
                     // git merge --no-ff hotfix/...
                     gitMergeNoff(hotfixBranchName);
-                } else {
+                } else if (!skipMergeDevBranch) {
                     GitFlowVersionInfo developVersionInfo = new GitFlowVersionInfo(
                             currentVersion);
                     if (notSameProdDevName()) {

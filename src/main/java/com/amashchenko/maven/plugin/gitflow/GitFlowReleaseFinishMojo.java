@@ -207,18 +207,16 @@ public class GitFlowReleaseFinishMojo extends AbstractGitFlowMojo {
                 }
             }
 
-            if (!skipTestProject) {
-                // git checkout release/...
-                gitCheckout(releaseBranch);
+            // git checkout release/...
+            gitCheckout(releaseBranch);
 
+            if (!skipTestProject) {
                 // mvn clean test
                 mvnCleanTest();
             }
 
             // maven goals before merge
             if (StringUtils.isNotBlank(preReleaseGoals)) {
-                gitCheckout(releaseBranch);
-
                 mvnRun(preReleaseGoals);
             }
 
@@ -274,7 +272,7 @@ public class GitFlowReleaseFinishMojo extends AbstractGitFlowMojo {
                     mvnSetVersions(currentVersion);
 
                     // commit the changes
-                    gitCommit(commitMessages.getUpdateDevToAvoidConflitsMessage());
+                    gitCommit(commitMessages.getUpdateDevToAvoidConflictsMessage());
                 }
 
                 // merge branch master into develop
